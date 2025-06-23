@@ -1,0 +1,379 @@
+.
+├── cmake
+│   ├── cabernet-config.cmake.in
+│   ├── cmake
+│   │   ├── cabernet-config-version.cmake
+│   │   ├── cabernet-config.cmake
+│   │   ├── cmake_install.cmake
+│   │   ├── CMakeFiles
+│   │   │   ├── CMakeDirectoryInformation.cmake
+│   │   │   ├── Export
+│   │   │   │   └── c6d6f7fe059fc1550878709d93cf03bd
+│   │   │   │       ├── cabernet-targets-noconfig.cmake
+│   │   │   │       └── cabernet-targets.cmake
+│   │   │   └── progress.marks
+│   │   └── Makefile
+│   ├── cmake_install.cmake
+│   ├── CMakeCache.txt
+│   ├── CMakeFiles
+│   │   ├── 4.0.1
+│   │   │   ├── CMakeCXXCompiler.cmake
+│   │   │   ├── CMakeDetermineCompilerABI_CXX.bin
+│   │   │   ├── CMakeSystem.cmake
+│   │   │   └── CompilerIdCXX
+│   │   │       ├── a.out
+│   │   │       ├── CMakeCXXCompilerId.cpp
+│   │   │       └── tmp
+│   │   ├── cabernet.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean_target.cmake
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── depend.make
+│   │   │   ├── DependInfo.cmake
+│   │   │   ├── flags.make
+│   │   │   ├── link.txt
+│   │   │   ├── progress.make
+│   │   │   └── src
+│   │   │       ├── internals
+│   │   │       │   ├── criterions
+│   │   │       │   ├── functions
+│   │   │       │   └── operations
+│   │   │       └── tensor
+│   │   ├── cmake.check_cache
+│   │   ├── CMakeConfigureLog.yaml
+│   │   ├── CMakeDirectoryInformation.cmake
+│   │   ├── CMakeRuleHashes.txt
+│   │   ├── CMakeScratch
+│   │   ├── Continuous.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ContinuousBuild.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ContinuousConfigure.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ContinuousCoverage.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ContinuousMemCheck.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ContinuousStart.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ContinuousSubmit.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ContinuousTest.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ContinuousUpdate.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── Experimental.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ExperimentalBuild.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ExperimentalConfigure.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ExperimentalCoverage.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ExperimentalMemCheck.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ExperimentalStart.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ExperimentalSubmit.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ExperimentalTest.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── ExperimentalUpdate.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── InstallScripts.json
+│   │   ├── Makefile.cmake
+│   │   ├── Makefile2
+│   │   ├── Nightly.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── NightlyBuild.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── NightlyConfigure.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── NightlyCoverage.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── NightlyMemCheck.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── NightlyMemoryCheck.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── NightlyStart.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── NightlySubmit.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── NightlyTest.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── NightlyUpdate.dir
+│   │   │   ├── build.make
+│   │   │   ├── cmake_clean.cmake
+│   │   │   ├── compiler_depend.make
+│   │   │   ├── compiler_depend.ts
+│   │   │   ├── DependInfo.cmake
+│   │   │   └── progress.make
+│   │   ├── pkgRedirects
+│   │   ├── progress.marks
+│   │   └── TargetDirectories.txt
+│   ├── CMakeLists.txt
+│   ├── CTestTestfile.cmake
+│   ├── DartConfiguration.tcl
+│   ├── Makefile
+│   ├── Testing
+│   │   └── Temporary
+│   └── tests
+│       ├── cmake_install.cmake
+│       ├── CMakeFiles
+│       │   ├── cabernetTests.dir
+│       │   │   ├── build.make
+│       │   │   ├── cmake_clean.cmake
+│       │   │   ├── compiler_depend.make
+│       │   │   ├── compiler_depend.ts
+│       │   │   ├── depend.make
+│       │   │   ├── DependInfo.cmake
+│       │   │   ├── flags.make
+│       │   │   ├── link.txt
+│       │   │   └── progress.make
+│       │   ├── CMakeDirectoryInformation.cmake
+│       │   ├── our_test.dir
+│       │   │   ├── build.make
+│       │   │   ├── cmake_clean.cmake
+│       │   │   ├── compiler_depend.make
+│       │   │   ├── compiler_depend.ts
+│       │   │   ├── depend.make
+│       │   │   ├── DependInfo.cmake
+│       │   │   ├── flags.make
+│       │   │   ├── link.txt
+│       │   │   └── progress.make
+│       │   └── progress.marks
+│       ├── CTestTestfile.cmake
+│       └── Makefile
+├── CMakeLists.txt
+├── data
+│   └── mnist
+│       ├── t10k-images-idx3-ubyte
+│       ├── t10k-labels-idx1-ubyte
+│       ├── train-images-idx3-ubyte
+│       └── train-labels-idx1-ubyte
+├── dataset_verification.py
+├── examples
+│   ├── cabernet-examples-layers
+│   ├── CMakeLists.txt
+│   ├── functions.cpp
+│   ├── layers.cpp
+│   ├── Makefile
+│   ├── model.cpp
+│   └── operations.cpp
+├── external license
+│   └── LICENSE
+├── in-process
+│   ├── data
+│   │   ├── train-images.idx3-ubyte
+│   │   └── train-labels.idx1-ubyte
+│   ├── data_reader_bin.cpp
+│   ├── data_reader.cpp
+│   ├── idea.cpp
+│   ├── read_mnist.cpp
+│   ├── README.md
+│   ├── usless_datareader.hpp
+│   ├── usless_dataset.hpp
+│   └── usless_normalizers.hpp
+├── include
+│   ├── CaberNet
+│   │   ├── criterions.h
+│   │   ├── dataset.h
+│   │   ├── functions.h
+│   │   ├── initializers.h
+│   │   ├── layers.h
+│   │   ├── model.h
+│   │   ├── optimizers.h
+│   │   ├── statistics
+│   │   │   └── distributions.h
+│   │   ├── tensor
+│   │   │   ├── tensor_float.h
+│   │   │   └── tensor_int.h
+│   │   └── tensor.h
+│   └── CaberNet.h
+├── project_structure.txt
+├── pytorch_comparison.py
+├── README.md
+├── src
+│   ├── criterions.cpp
+│   ├── functions.cpp
+│   ├── internals
+│   │   ├── config.h
+│   │   ├── criterions
+│   │   │   ├── internal_criterion_nllloss.cpp
+│   │   │   └── internal_criterions.hpp
+│   │   ├── functions
+│   │   │   ├── internal_function_conv2d.cpp
+│   │   │   ├── internal_function_flatten.cpp
+│   │   │   ├── internal_function_linear.cpp
+│   │   │   ├── internal_function_logsoftmax.cpp
+│   │   │   ├── internal_function_maxpool2d.cpp
+│   │   │   ├── internal_function_relu.cpp
+│   │   │   ├── internal_function_softmax.cpp
+│   │   │   └── internal_functions.hpp
+│   │   ├── internal_array_map.cpp
+│   │   ├── internal_array.hpp
+│   │   ├── internal_base.hpp
+│   │   ├── internal_expression.hpp
+│   │   ├── internal_graph.hpp
+│   │   ├── internal_tensor.hpp
+│   │   └── operations
+│   │       ├── internal_operation_addition.cpp
+│   │       ├── internal_operation_matmul.cpp
+│   │       ├── internal_operation_multiplication.cpp
+│   │       └── internal_operations.hpp
+│   ├── layers.cpp
+│   ├── optimizers.cpp
+│   ├── README.md
+│   ├── tensor
+│   │   ├── tensor_float.cpp
+│   │   └── tensor_int.cpp
+│   └── tensor.cpp
+└── tests
+    ├── CMakeLists.txt
+    ├── criterions.cpp
+    ├── function_softmax.cpp
+    ├── functions.cpp
+    ├── operations.cpp
+    ├── optimizers.cpp
+    ├── test_conv2d_backup.cpp
+    ├── test_conv2d.cpp
+    └── test.cpp
+
+70 directories, 307 files
