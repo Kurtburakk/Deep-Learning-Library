@@ -122,12 +122,12 @@ struct LogSoftmax : public Model<LogSoftmax> {
     void set_optimizer(std::shared_ptr<net::base::Optimizer> optimizer) { return; }
 };
 
-class Sequence : public Model<Sequence> {
+class Sequence : public Model<Sequence> {. // define layer variant 
     using layer_variant = std::variant<
         Linear,
-        Conv2d,  // 🆕 ADD Conv2d to variant
+        Conv2d,  
         MaxPool2d,
-        Flatten,    // 🆕 ADD Flatten
+        Flatten,    
         ReLU,
         Softmax,
         LogSoftmax

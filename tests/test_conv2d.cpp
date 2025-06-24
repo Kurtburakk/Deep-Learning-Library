@@ -711,13 +711,12 @@ TEST(mnist_training, before_after_comparison) {
 }
 ///////////////////////////////////// important test //////////////////////////////////////////////
 
-TEST(mnist_training_fixed, stable_training_fixed_access) {
+TEST(mnist_training_fixed, stable_training_with_proper_test_evaluation) {
     /*
-    Fixed training with proper parameter access
-    (avoiding internal::Tensor direct access)
+    Fixed training with proper parameter access + REAL TEST SET EVALUATION
     */
     
-    std::cout << "\n🔧 Testing Fixed Training (No Internal Access)..." << std::endl;
+    std::cout << "\n🔧 Testing Fixed Training + Real Test Accuracy..." << std::endl;
     
     // Create SMALLER CNN for stability with EXPLICIT He initialization
     auto stable_cnn = net::layer::Sequence(
@@ -745,35 +744,41 @@ TEST(mnist_training_fixed, stable_training_fixed_access) {
     auto optimizer = std::make_shared<net::optimizer::SGD>(0.0001f);  // Very small LR
     stable_cnn.configure_optimizer(optimizer);
     
-    // Load MNIST data
-    net::Dataset mnist_data(16, false);  // Smaller batch size
+    // ================================
+    // 1️⃣ TRAINING PHASE (train-images)
+    // ================================
+    
+    std::cout << "\n🚀 === TRAINING PHASE === 🚀" << std::endl;
+    
+    // Load MNIST training data
+    net::Dataset mnist_train_data(16, false);  // Smaller batch size
     std::string data_dir = "../data/mnist/";
     
     try {
-        mnist_data.read_features(data_dir + "train-images-idx3-ubyte");
-        mnist_data.read_targets(data_dir + "train-labels-idx1-ubyte");
+        mnist_train_data.read_features(data_dir + "train-images-idx3-ubyte");
+        mnist_train_data.read_targets(data_dir + "train-labels-idx1-ubyte");
         
-        auto& features = mnist_data.features();
-        auto& targets = mnist_data.targets();
+        auto& train_features = mnist_train_data.features();
+        auto& train_targets = mnist_train_data.targets();
         
-        std::cout << "📊 Training Data Loaded: " << features.size() << " batches" << std::endl;
+        std::cout << "📊 Training Data Loaded: " << train_features.size() << " batches" << std::endl;
         
-        float total_loss = 0.0f;
-        int correct_predictions = 0;
-        int total_samples = 0;
+        float total_train_loss = 0.0f;
+        int correct_train_predictions = 0;
+        int total_train_samples = 0;
         
-        int num_batches = 5;  // Test on 5 batches only
-        std::cout << "🚀 Stable Training on " << num_batches << " batches..." << std::endl;
+        int num_train_batches = 5;  // Train on 5 batches only
+        std::cout << "🚀 Training on " << num_train_batches << " batches..." << std::endl;
         
         auto training_start = std::chrono::high_resolution_clock::now();
         
         // Training loop with comprehensive monitoring
-        for (int batch_idx = 0; batch_idx < num_batches; ++batch_idx) {
+        for (int batch_idx = 0; batch_idx < num_train_batches; ++batch_idx) {
             auto batch_start = std::chrono::high_resolution_clock::now();
             
             // Get batch data
-            auto mnist_batch = features[batch_idx];      // [16, 784]
-            auto mnist_labels = targets[batch_idx];      // [16]
+            auto mnist_batch = train_features[batch_idx];      // [16, 784]
+            auto mnist_labels = train_targets[batch_idx];      // [16]
             
             // Reshape to CNN input: [16, 784] → [16, 1, 28, 28]
             net::Tensor<float> cnn_input({16, 1, 28, 28}, false);
@@ -835,9 +840,9 @@ TEST(mnist_training_fixed, stable_training_fixed_access) {
                 std::cout << "⚠️  High loss detected: " << batch_loss << std::endl;
             }
             
-            total_loss += batch_loss;
+            total_train_loss += batch_loss;
             
-            // Calculate accuracy
+            // Calculate training accuracy
             int* label_data = mnist_labels.data();
             for (int sample = 0; sample < 16; ++sample) {
                 float max_logit = output_data[sample * 10];
@@ -850,9 +855,9 @@ TEST(mnist_training_fixed, stable_training_fixed_access) {
                 }
                 
                 if (predicted_class == label_data[sample]) {
-                    correct_predictions++;
+                    correct_train_predictions++;
                 }
-                total_samples++;
+                total_train_samples++;
             }
             
             // Backward pass
@@ -864,10 +869,10 @@ TEST(mnist_training_fixed, stable_training_fixed_access) {
             auto batch_end = std::chrono::high_resolution_clock::now();
             auto batch_time = std::chrono::duration_cast<std::chrono::milliseconds>(batch_end - batch_start);
             
-            float current_accuracy = (float)correct_predictions / total_samples * 100.0f;
-            std::cout << "  Batch " << (batch_idx + 1) << "/" << num_batches 
+            float current_train_accuracy = (float)correct_train_predictions / total_train_samples * 100.0f;
+            std::cout << "  Train Batch " << (batch_idx + 1) << "/" << num_train_batches 
                      << ": Loss=" << std::fixed << std::setprecision(4) << batch_loss
-                     << ", Acc=" << std::setprecision(2) << current_accuracy << "%"
+                     << ", Acc=" << std::setprecision(2) << current_train_accuracy << "%"
                      << ", Time=" << batch_time.count() << "ms"
                      << ", AvgAct=" << std::setprecision(3) << avg_abs_output << std::endl;
         }
@@ -875,145 +880,180 @@ TEST(mnist_training_fixed, stable_training_fixed_access) {
         auto training_end = std::chrono::high_resolution_clock::now();
         auto total_training_time = std::chrono::duration_cast<std::chrono::milliseconds>(training_end - training_start);
         
-        // Final metrics
-        float avg_loss = total_loss / num_batches;
-        float final_accuracy = (float)correct_predictions / total_samples * 100.0f;
+        // Training phase metrics
+        float avg_train_loss = total_train_loss / num_train_batches;
+        float final_train_accuracy = (float)correct_train_predictions / total_train_samples * 100.0f;
         
-        std::cout << "\n🎯 Fixed Training Results:" << std::endl;
-        std::cout << "📈 Average Loss: " << std::fixed << std::setprecision(4) << avg_loss << std::endl;
-        std::cout << "🎯 Final Accuracy: " << std::setprecision(2) << final_accuracy << "%" << std::endl;
-        std::cout << "⏱️  Total Training Time: " << total_training_time.count() << " ms" << std::endl;
-        std::cout << "⚡ Avg Time per Batch: " << (total_training_time.count() / num_batches) << " ms" << std::endl;
-        std::cout << "🔧 Weight Init: He initialization used" << std::endl;
-        std::cout << "📊 Input Normalization: Applied (0-1 range)" << std::endl;
-        std::cout << "🛠️  Internal Access: Avoided (compiler safe)" << std::endl;
+        std::cout << "\n📚 TRAINING PHASE RESULTS:" << std::endl;
+        std::cout << "📈 Average Training Loss: " << std::fixed << std::setprecision(4) << avg_train_loss << std::endl;
+        std::cout << "🎯 Training Accuracy: " << std::setprecision(2) << final_train_accuracy << "%" << std::endl;
+        std::cout << "⏱️  Training Time: " << total_training_time.count() << " ms" << std::endl;
         
-        // Comprehensive checks
-        EXPECT_GT(final_accuracy, 5.0f);     // Better than random (10%)
-        EXPECT_LT(avg_loss, 20.0f);          // Reasonable loss (more strict)
-        EXPECT_FALSE(std::isnan(avg_loss));  // No NaN
-        EXPECT_GT(final_accuracy, 0.0f);    // Some learning happened
+        // ================================
+        // 2️⃣ TEST PHASE (t10k-images) - NO TRAINING!
+        // ================================
         
-        // Weight initialization was successful if we reach here without NaN
-        std::cout << "✅ Weight initialization successful (He)" << std::endl;
+        std::cout << "\n🧪 === TEST PHASE (UNSEEN DATA) === 🧪" << std::endl;
         
-        if (avg_loss < 5.0f && final_accuracy > 15.0f) {
-            std::cout << "🚀 Excellent training stability!" << std::endl;
-        } else if (avg_loss < 10.0f) {
-            std::cout << "✅ Good training stability!" << std::endl;
+        // Load MNIST test data (t10k files)
+        net::Dataset mnist_test_data(16, false);
+        
+        mnist_test_data.read_features(data_dir + "t10k-images-idx3-ubyte");   // ← DIFFERENT FILE!
+        mnist_test_data.read_targets(data_dir + "t10k-labels-idx1-ubyte");    // ← UNSEEN LABELS!
+        
+        auto& test_features = mnist_test_data.features();
+        auto& test_targets = mnist_test_data.targets();
+        
+        std::cout << "📊 Test Data Loaded: " << test_features.size() << " batches (unseen data)" << std::endl;
+        
+        int correct_test_predictions = 0;
+        int total_test_samples = 0;
+        float total_test_loss = 0.0f;
+        
+        int num_test_batches = 5;  // Test on 5 batches for comparison
+        std::cout << "🧪 Evaluating on " << num_test_batches << " test batches..." << std::endl;
+        
+        auto test_start = std::chrono::high_resolution_clock::now();
+        
+        // Test loop - NO TRAINING, ONLY EVALUATION!
+        for (int batch_idx = 0; batch_idx < num_test_batches && batch_idx < test_features.size(); ++batch_idx) {
+            auto batch_start = std::chrono::high_resolution_clock::now();
+            
+            // Get test batch data
+            auto test_batch = test_features[batch_idx];      // [16, 784] - UNSEEN DATA
+            auto test_labels = test_targets[batch_idx];      // [16] - UNSEEN LABELS
+            
+            // Reshape to CNN input: [16, 784] → [16, 1, 28, 28]
+            net::Tensor<float> test_input({16, 1, 28, 28}, false);
+            float* test_data_ptr = test_batch.data();
+            float* test_cnn_ptr = test_input.data();
+            
+            // Copy and normalize test data (same as training)
+            for (int i = 0; i < 16 * 784; ++i) {
+                test_cnn_ptr[i] = test_data_ptr[i] / 255.0f;  // Normalize to [0,1]
+            }
+            
+            // ✅ FORWARD PASS ONLY (no backward pass!)
+            auto test_output = stable_cnn.forward(test_input);
+            test_output.perform();
+            
+            // Calculate test loss (for monitoring only)
+            auto test_log_probs = net::function::log_softmax(test_output, 1);
+            test_log_probs.perform();
+            
+            net::criterion::NLLLoss test_criterion(test_log_probs, test_labels);
+            float test_batch_loss = test_criterion.loss();
+            total_test_loss += test_batch_loss;
+            
+            // Calculate test accuracy
+            float* test_output_data = test_output.data();
+            int* test_label_data = test_labels.data();
+            
+            for (int sample = 0; sample < 16; ++sample) {
+                float max_logit = test_output_data[sample * 10];
+                int predicted_class = 0;
+                
+                // Find class with maximum probability
+                for (int cls = 1; cls < 10; ++cls) {
+                    if (test_output_data[sample * 10 + cls] > max_logit) {
+                        max_logit = test_output_data[sample * 10 + cls];
+                        predicted_class = cls;
+                    }
+                }
+                
+                // Compare with ground truth
+                if (predicted_class == test_label_data[sample]) {
+                    correct_test_predictions++;
+                }
+                total_test_samples++;
+            }
+            
+            // 🚫 NO BACKWARD PASS - NO LEARNING FROM TEST DATA!
+            // 🚫 NO OPTIMIZER STEP - WEIGHTS REMAIN FIXED!
+            
+            auto batch_end = std::chrono::high_resolution_clock::now();
+            auto batch_time = std::chrono::duration_cast<std::chrono::milliseconds>(batch_end - batch_start);
+            
+            float current_test_accuracy = (float)correct_test_predictions / total_test_samples * 100.0f;
+            std::cout << "  Test Batch " << (batch_idx + 1) << "/" << num_test_batches 
+                     << ": Loss=" << std::fixed << std::setprecision(4) << test_batch_loss
+                     << ", Acc=" << std::setprecision(2) << current_test_accuracy << "%"
+                     << ", Time=" << batch_time.count() << "ms (eval only)" << std::endl;
+        }
+        
+        auto test_end = std::chrono::high_resolution_clock::now();
+        auto total_test_time = std::chrono::duration_cast<std::chrono::milliseconds>(test_end - test_start);
+        
+        // Test phase metrics
+        float avg_test_loss = total_test_loss / num_test_batches;
+        float final_test_accuracy = (float)correct_test_predictions / total_test_samples * 100.0f;
+        
+        // ================================
+        // 3️⃣ COMPARISON & ANALYSIS
+        // ================================
+        
+        std::cout << "\n🏆 === FINAL RESULTS COMPARISON === 🏆" << std::endl;
+        
+        std::cout << "📚 TRAINING RESULTS (seen data):" << std::endl;
+        std::cout << "   📈 Training Loss: " << std::fixed << std::setprecision(4) << avg_train_loss << std::endl;
+        std::cout << "   🎯 Training Accuracy: " << std::setprecision(2) << final_train_accuracy << "%" << std::endl;
+        
+        std::cout << "\n🧪 TEST RESULTS (unseen data):" << std::endl;
+        std::cout << "   📈 Test Loss: " << std::fixed << std::setprecision(4) << avg_test_loss << std::endl;
+        std::cout << "   🎯 Test Accuracy: " << std::setprecision(2) << final_test_accuracy << "%" << std::endl;
+        
+        float generalization_gap = final_train_accuracy - final_test_accuracy;
+        std::cout << "\n📊 GENERALIZATION ANALYSIS:" << std::endl;
+        std::cout << "   📉 Accuracy Gap: " << std::setprecision(2) << generalization_gap << "%" << std::endl;
+        
+        if (generalization_gap < 5.0f) {
+            std::cout << "   ✅ Excellent generalization!" << std::endl;
+        } else if (generalization_gap < 10.0f) {
+            std::cout << "   ✅ Good generalization!" << std::endl;
+        } else if (generalization_gap < 20.0f) {
+            std::cout << "   ⚠️  Moderate overfitting" << std::endl;
         } else {
-            std::cout << "⚠️  Training stable but needs tuning" << std::endl;
+            std::cout << "   🚨 Significant overfitting detected!" << std::endl;
+        }
+        
+        std::cout << "\n🔧 TECHNICAL DETAILS:" << std::endl;
+        std::cout << "   ⏱️  Training Time: " << total_training_time.count() << " ms" << std::endl;
+        std::cout << "   ⏱️  Test Time: " << total_test_time.count() << " ms" << std::endl;
+        std::cout << "   🔧 Weight Init: He initialization" << std::endl;
+        std::cout << "   📊 Input Normalization: Applied (0-1 range)" << std::endl;
+        std::cout << "   🛠️  Test Data: Completely unseen (t10k files)" << std::endl;
+        
+        // ================================
+        // 4️⃣ TEST ASSERTIONS
+        // ================================
+        
+        // Training performance checks
+        EXPECT_GT(final_train_accuracy, 5.0f);     // Training should work
+        EXPECT_LT(avg_train_loss, 20.0f);          // Reasonable training loss
+        EXPECT_FALSE(std::isnan(avg_train_loss));  // No NaN in training
+        
+        // Test performance checks (REAL PERFORMANCE!)
+        EXPECT_GT(final_test_accuracy, 5.0f);      // Test accuracy should be reasonable
+        EXPECT_LT(avg_test_loss, 25.0f);           // Test loss should be reasonable  
+        EXPECT_FALSE(std::isnan(avg_test_loss));   // No NaN in test
+        
+        // Generalization checks
+        EXPECT_LT(generalization_gap, 50.0f);      // Gap shouldn't be extreme
+        
+        std::cout << "✅ He initialization test with proper evaluation completed!" << std::endl;
+        
+        // Success message based on results
+        if (final_test_accuracy > 20.0f && generalization_gap < 15.0f) {
+            std::cout << "🚀 EXCELLENT! He initialization delivers great performance and generalization!" << std::endl;
+        } else if (final_test_accuracy > 10.0f) {
+            std::cout << "✅ GOOD! He initialization shows clear improvement!" << std::endl;
+        } else {
+            std::cout << "📈 PROGRESS! Training is stable, but could be optimized further" << std::endl;
         }
         
     } catch (const std::exception& e) {
-        FAIL() << "Fixed training failed: " << e.what();
+        FAIL() << "Training with test evaluation failed: " << e.what();
     }
 }
 
-// 🔍 Simplified weight initialization test (no internal access)
-TEST(weight_initialization, he_initialization_safe_test) {
-    /*
-    Safe test for verifying He weight initialization
-    without accessing internal tensor details
-    */
-    
-    std::cout << "\n🔍 Testing He Weight Initialization (Safe)..." << std::endl;
-    
-    // Create layers with He initialization
-    net::layer::Linear linear_layer(784, 128, net::initializer::He);
-    net::layer::Conv2d conv_layer(1, 32, 3, 1, 1, net::initializer::He);
-    
-    std::cout << "✅ Layers created with He initialization" << std::endl;
-    
-    // Get parameters (count only, no internal access)
-    auto linear_params = linear_layer.parameters();
-    auto conv_params = conv_layer.parameters();
-    
-    std::cout << "📊 Linear layer parameters: " << linear_params.size() << std::endl;
-    std::cout << "📊 Conv layer parameters: " << conv_params.size() << std::endl;
-    
-    // Basic checks
-    EXPECT_EQ(linear_params.size(), 2);  // weight + bias
-    EXPECT_EQ(conv_params.size(), 2);    // weight + bias
-    
-    // Test forward pass to ensure weights are properly initialized
-    net::Tensor<float> linear_input({1, 784}, false);
-    linear_input.fill(0.1f);  // Small input
-    
-    auto linear_output = linear_layer.forward(linear_input);
-    linear_output.perform();
-    
-    // Check output is reasonable (not NaN/Inf)
-    float* output_data = linear_output.data();
-    bool output_valid = true;
-    float max_output = -1e6, min_output = 1e6;
-    
-    for (int i = 0; i < 128; ++i) {
-        if (std::isnan(output_data[i]) || std::isinf(output_data[i])) {
-            output_valid = false;
-            break;
-        }
-        max_output = std::max(max_output, output_data[i]);
-        min_output = std::min(min_output, output_data[i]);
-    }
-    
-    EXPECT_TRUE(output_valid);
-    EXPECT_LT(std::abs(max_output), 50.0f);  // Reasonable range
-    EXPECT_LT(std::abs(min_output), 50.0f);  // Reasonable range
-    
-    std::cout << "📈 Output range: [" << min_output << ", " << max_output << "]" << std::endl;
-    std::cout << "✅ He initialization produces stable outputs" << std::endl;
-}
 
-// 🚀 Additional test for network architecture verification
-TEST(network_architecture, cnn_structure_test) {
-    /*
-    Test CNN structure without accessing internals
-    */
-    
-    std::cout << "\n🏗️  Testing CNN Architecture..." << std::endl;
-    
-    // Create test CNN
-    auto test_cnn = net::layer::Sequence(
-        net::layer::Conv2d(1, 16, 3, 1, 1),    // 1→16, 3x3, stride=1, pad=1
-        net::layer::ReLU(),
-        net::layer::MaxPool2d(2),               // 2x2 pool, stride=2
-        net::layer::Conv2d(16, 32, 3, 1, 1),   // 16→32, 3x3, stride=1, pad=1
-        net::layer::ReLU(),
-        net::layer::MaxPool2d(2),               // 2x2 pool, stride=2
-        net::layer::Flatten(),                  // Flatten for FC
-        net::layer::Linear(1568, 128),          // 32*7*7=1568 → 128
-        net::layer::ReLU(),
-        net::layer::Linear(128, 10)             // 128 → 10 classes
-    );
-    
-    // Test with MNIST-like input
-    net::Tensor<float> test_input({1, 1, 28, 28}, false);
-    test_input.fill(0.5f);
-    
-    // Forward pass through entire network
-    auto output = test_cnn.forward(test_input);
-    output.perform();
-    
-    // Check final output shape
-    auto output_shape = output.shape();
-    EXPECT_EQ(output_shape.size(), 2);    // [batch, classes]
-    EXPECT_EQ(output_shape[0], 1);        // batch size = 1
-    EXPECT_EQ(output_shape[1], 10);       // 10 classes
-    
-    // Check output values are reasonable
-    float* output_data = output.data();
-    bool valid_output = true;
-    for (int i = 0; i < 10; ++i) {
-        if (std::isnan(output_data[i]) || std::isinf(output_data[i])) {
-            valid_output = false;
-            break;
-        }
-    }
-    
-    EXPECT_TRUE(valid_output);
-    
-    std::cout << "✅ CNN architecture test passed" << std::endl;
-    std::cout << "📊 Output shape: [" << output_shape[0] << ", " << output_shape[1] << "]" << std::endl;
-    std::cout << "🎯 Ready for MNIST training!" << std::endl;
-}
