@@ -61,8 +61,8 @@ Tensor* MaxPool2d::forward() {
             for (size_type oh = 0; oh < output_height_; ++oh) {
                 for (size_type ow = 0; ow < output_width_; ++ow) {
                     
-                    // Find max value in the pooling window
-                    scalar_type max_val = -std::numeric_limits<scalar_type>::infinity();
+                    // DÜZELTME: infinity() yerine lowest() kullanıyoruz
+                    scalar_type max_val = std::numeric_limits<scalar_type>::lowest();
                     size_type max_idx = 0;
                     
                     for (size_type kh = 0; kh < static_cast<size_type>(kernel_size_); ++kh) {

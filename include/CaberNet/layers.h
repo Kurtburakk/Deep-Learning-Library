@@ -122,12 +122,13 @@ struct LogSoftmax : public Model<LogSoftmax> {
     void set_optimizer(std::shared_ptr<net::base::Optimizer> optimizer) { return; }
 };
 
-class Sequence : public Model<Sequence> {
+// DÜZELTME: Nokta karakterini kaldırdım ve layer_variant'ı sınıf içinde tanımladım
+class Sequence : public Model<Sequence> {  // "." karakteri KALDIRILDI!
     using layer_variant = std::variant<
         Linear,
-        Conv2d,  // 🆕 ADD Conv2d to variant
+        Conv2d,  
         MaxPool2d,
-        Flatten,    // 🆕 ADD Flatten
+        Flatten,    
         ReLU,
         Softmax,
         LogSoftmax

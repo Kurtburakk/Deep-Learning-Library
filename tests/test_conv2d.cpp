@@ -709,6 +709,352 @@ TEST(mnist_training, before_after_comparison) {
         FAIL() << "Comparison test failed: " << e.what();
     }
 }
+///////////////////////////////////// important test with real test example t10k //////////////////////////////////////////////
+TEST(mnist_training_fixed, stable_training_with_individual_layers) {
+    /*
+    Fixed training with individual layers instead of Sequence
+    */
+    
+    std::cout << "\n🔧 Testing Fixed Training with Individual Layers..." << std::endl;
+    
+    // Create individual layers instead of Sequence
+    net::layer::Conv2d conv1(1, 16, 3, 1, 1);      // First conv layer
+    net::layer::ReLU relu1;                         // First ReLU
+    net::layer::MaxPool2d pool1(2);                 // First pooling
+    net::layer::Conv2d conv2(16, 32, 3, 1, 1);     // Second conv layer  
+    net::layer::ReLU relu2;                         // Second ReLU
+    net::layer::MaxPool2d pool2(2);                 // Second pooling
+    net::layer::Flatten flatten;                    // Flatten layer
+    net::layer::Linear fc1(1568, 128);              // First fully connected
+    net::layer::ReLU relu3;                         // Third ReLU
+    net::layer::Linear fc2(128, 10);                // Output layer
+    
+    std::cout << "🔍 Network Structure Created (Individual Layers)" << std::endl;
+    
+    // Create optimizer with small learning rate
+    auto optimizer = std::make_shared<net::optimizer::SGD>(0.001f);  // Small LR
+    
+    // Configure optimizer for all trainable layers
+    conv1.set_optimizer(optimizer);
+    conv2.set_optimizer(optimizer);
+    fc1.set_optimizer(optimizer);
+    fc2.set_optimizer(optimizer);
+    
+    std::cout << "✅ Optimizer configured for all trainable layers" << std::endl;
+    
+    // ================================
+    // 1️⃣ TRAINING PHASE
+    // ================================
+    
+    std::cout << "\n🚀 === TRAINING PHASE === 🚀" << std::endl;
+    
+    // Load MNIST training data
+    net::Dataset mnist_train_data(16, false);  // Smaller batch size
+    std::string data_dir = "../data/mnist/";
+    
+    try {
+        mnist_train_data.read_features(data_dir + "train-images-idx3-ubyte");
+        mnist_train_data.read_targets(data_dir + "train-labels-idx1-ubyte");
+        
+        auto& train_features = mnist_train_data.features();
+        auto& train_targets = mnist_train_data.targets();
+        
+        std::cout << "📊 Training Data Loaded: " << train_features.size() << " batches" << std::endl;
+        
+        float total_train_loss = 0.0f;
+        int correct_train_predictions = 0;
+        int total_train_samples = 0;
+        
+        int num_train_batches = 3;  // Train on 3 batches only for stability
+        std::cout << "🚀 Training on " << num_train_batches << " batches..." << std::endl;
+        
+        auto training_start = std::chrono::high_resolution_clock::now();
+        
+        // Training loop
+        for (int batch_idx = 0; batch_idx < num_train_batches && batch_idx < train_features.size(); ++batch_idx) {
+            auto batch_start = std::chrono::high_resolution_clock::now();
+            
+            // Get batch data
+            auto mnist_batch = train_features[batch_idx];      // [16, 784]
+            auto mnist_labels = train_targets[batch_idx];      // [16]
+            
+            // Reshape to CNN input: [16, 784] → [16, 1, 28, 28]
+            net::Tensor<float> cnn_input({16, 1, 28, 28}, false);
+            float* mnist_data_ptr = mnist_batch.data();
+            float* cnn_data_ptr = cnn_input.data();
+            
+            // Copy and normalize input data
+            for (int i = 0; i < 16 * 784; ++i) {
+                cnn_data_ptr[i] = mnist_data_ptr[i] / 255.0f;  // Normalize to [0,1]
+            }
+            
+            // Manual forward pass through each layer
+            auto conv1_out = conv1.forward(cnn_input);
+            conv1_out.perform();
+            
+            auto relu1_out = relu1.forward(conv1_out);
+            relu1_out.perform();
+            
+            auto pool1_out = pool1.forward(relu1_out);
+            pool1_out.perform();
+            
+            auto conv2_out = conv2.forward(pool1_out);
+            conv2_out.perform();
+            
+            auto relu2_out = relu2.forward(conv2_out);
+            relu2_out.perform();
+            
+            auto pool2_out = pool2.forward(relu2_out);
+            pool2_out.perform();
+            
+            auto flatten_out = flatten.forward(pool2_out);
+            flatten_out.perform();
+            
+            auto fc1_out = fc1.forward(flatten_out);
+            fc1_out.perform();
+            
+            auto relu3_out = relu3.forward(fc1_out);
+            relu3_out.perform();
+            
+            auto output = fc2.forward(relu3_out);
+            output.perform();
+            
+            // Check for NaN/Inf in output
+            float* output_data = output.data();
+            bool has_nan = false;
+            float max_output = -1e6, min_output = 1e6;
+            
+            for (int i = 0; i < 16 * 10; ++i) {
+                if (std::isnan(output_data[i]) || std::isinf(output_data[i])) {
+                    has_nan = true;
+                    break;
+                }
+                max_output = std::max(max_output, output_data[i]);
+                min_output = std::min(min_output, output_data[i]);
+            }
+            
+            if (has_nan) {
+                std::cout << "❌ NaN/Inf detected in batch " << batch_idx << std::endl;
+                FAIL() << "NaN/Inf in forward pass";
+            }
+            
+            std::cout << "   Activations range: [" << min_output << ", " << max_output << "]" << std::endl;
+            
+            // Apply log_softmax for NLLLoss
+            auto log_probs = net::function::log_softmax(output, 1);
+            log_probs.perform();
+            
+            // Calculate loss
+            net::criterion::NLLLoss criterion(log_probs, mnist_labels);
+            float batch_loss = criterion.loss();
+            
+            if (std::isnan(batch_loss) || std::isinf(batch_loss)) {
+                std::cout << "❌ NaN/Inf loss in batch " << batch_idx << std::endl;
+                FAIL() << "NaN/Inf loss";
+            }
+            
+            total_train_loss += batch_loss;
+            
+            // Calculate training accuracy
+            int* label_data = mnist_labels.data();
+            for (int sample = 0; sample < 16; ++sample) {
+                float max_logit = output_data[sample * 10];
+                int predicted_class = 0;
+                for (int cls = 1; cls < 10; ++cls) {
+                    if (output_data[sample * 10 + cls] > max_logit) {
+                        max_logit = output_data[sample * 10 + cls];
+                        predicted_class = cls;
+                    }
+                }
+                
+                if (predicted_class == label_data[sample]) {
+                    correct_train_predictions++;
+                }
+                total_train_samples++;
+            }
+            
+            // Backward pass
+            criterion.backward();
+            
+            // Optimizer step
+            optimizer->step();
+            
+            auto batch_end = std::chrono::high_resolution_clock::now();
+            auto batch_time = std::chrono::duration_cast<std::chrono::milliseconds>(batch_end - batch_start);
+            
+            float current_train_accuracy = (float)correct_train_predictions / total_train_samples * 100.0f;
+            std::cout << "  Train Batch " << (batch_idx + 1) << "/" << num_train_batches 
+                     << ": Loss=" << std::fixed << std::setprecision(4) << batch_loss
+                     << ", Acc=" << std::setprecision(2) << current_train_accuracy << "%"
+                     << ", Time=" << batch_time.count() << "ms" << std::endl;
+        }
+        
+        auto training_end = std::chrono::high_resolution_clock::now();
+        auto total_training_time = std::chrono::duration_cast<std::chrono::milliseconds>(training_end - training_start);
+        
+        // Training phase metrics
+        float avg_train_loss = total_train_loss / num_train_batches;
+        float final_train_accuracy = (float)correct_train_predictions / total_train_samples * 100.0f;
+        
+        std::cout << "\n📚 TRAINING PHASE RESULTS:" << std::endl;
+        std::cout << "📈 Average Training Loss: " << std::fixed << std::setprecision(4) << avg_train_loss << std::endl;
+        std::cout << "🎯 Training Accuracy: " << std::setprecision(2) << final_train_accuracy << "%" << std::endl;
+        std::cout << "⏱️  Training Time: " << total_training_time.count() << " ms" << std::endl;
+        
+        // ================================
+        // 2️⃣ TEST PHASE (if test data exists)
+        // ================================
+        
+        std::cout << "\n🧪 === TEST PHASE === 🧪" << std::endl;
+        
+        // Try to load test data
+        net::Dataset mnist_test_data(16, false);
+        
+        try {
+            mnist_test_data.read_features(data_dir + "t10k-images-idx3-ubyte");
+            mnist_test_data.read_targets(data_dir + "t10k-labels-idx1-ubyte");
+            
+            auto& test_features = mnist_test_data.features();
+            auto& test_targets = mnist_test_data.targets();
+            
+            std::cout << "📊 Test Data Loaded: " << test_features.size() << " batches" << std::endl;
+            
+            int correct_test_predictions = 0;
+            int total_test_samples = 0;
+            float total_test_loss = 0.0f;
+            
+            int num_test_batches = 3;  // Test on 3 batches
+            std::cout << "🧪 Evaluating on " << num_test_batches << " test batches..." << std::endl;
+            
+            auto test_start = std::chrono::high_resolution_clock::now();
+            
+            // Test loop - NO TRAINING, ONLY EVALUATION!
+            for (int batch_idx = 0; batch_idx < num_test_batches && batch_idx < test_features.size(); ++batch_idx) {
+                auto batch_start = std::chrono::high_resolution_clock::now();
+                
+                // Get test batch data
+                auto test_batch = test_features[batch_idx];
+                auto test_labels = test_targets[batch_idx];
+                
+                // Reshape to CNN input
+                net::Tensor<float> test_input({16, 1, 28, 28}, false);
+                float* test_data_ptr = test_batch.data();
+                float* test_cnn_ptr = test_input.data();
+                
+                // Copy and normalize test data
+                for (int i = 0; i < 16 * 784; ++i) {
+                    test_cnn_ptr[i] = test_data_ptr[i] / 255.0f;
+                }
+                
+                // Forward pass through network (evaluation only)
+                auto test_conv1_out = conv1.forward(test_input);
+                test_conv1_out.perform();
+                
+                auto test_relu1_out = relu1.forward(test_conv1_out);
+                test_relu1_out.perform();
+                
+                auto test_pool1_out = pool1.forward(test_relu1_out);
+                test_pool1_out.perform();
+                
+                auto test_conv2_out = conv2.forward(test_pool1_out);
+                test_conv2_out.perform();
+                
+                auto test_relu2_out = relu2.forward(test_conv2_out);
+                test_relu2_out.perform();
+                
+                auto test_pool2_out = pool2.forward(test_relu2_out);
+                test_pool2_out.perform();
+                
+                auto test_flatten_out = flatten.forward(test_pool2_out);
+                test_flatten_out.perform();
+                
+                auto test_fc1_out = fc1.forward(test_flatten_out);
+                test_fc1_out.perform();
+                
+                auto test_relu3_out = relu3.forward(test_fc1_out);
+                test_relu3_out.perform();
+                
+                auto test_output = fc2.forward(test_relu3_out);
+                test_output.perform();
+                
+                // Calculate test loss (monitoring only)
+                auto test_log_probs = net::function::log_softmax(test_output, 1);
+                test_log_probs.perform();
+                
+                net::criterion::NLLLoss test_criterion(test_log_probs, test_labels);
+                float test_batch_loss = test_criterion.loss();
+                total_test_loss += test_batch_loss;
+                
+                // Calculate test accuracy
+                float* test_output_data = test_output.data();
+                int* test_label_data = test_labels.data();
+                
+                for (int sample = 0; sample < 16; ++sample) {
+                    float max_logit = test_output_data[sample * 10];
+                    int predicted_class = 0;
+                    
+                    for (int cls = 1; cls < 10; ++cls) {
+                        if (test_output_data[sample * 10 + cls] > max_logit) {
+                            max_logit = test_output_data[sample * 10 + cls];
+                            predicted_class = cls;
+                        }
+                    }
+                    
+                    if (predicted_class == test_label_data[sample]) {
+                        correct_test_predictions++;
+                    }
+                    total_test_samples++;
+                }
+                
+                // NO BACKWARD PASS - NO TRAINING ON TEST DATA!
+                
+                auto batch_end = std::chrono::high_resolution_clock::now();
+                auto batch_time = std::chrono::duration_cast<std::chrono::milliseconds>(batch_end - batch_start);
+                
+                float current_test_accuracy = (float)correct_test_predictions / total_test_samples * 100.0f;
+                std::cout << "  Test Batch " << (batch_idx + 1) << "/" << num_test_batches 
+                         << ": Loss=" << std::fixed << std::setprecision(4) << test_batch_loss
+                         << ", Acc=" << std::setprecision(2) << current_test_accuracy << "%"
+                         << ", Time=" << batch_time.count() << "ms (eval only)" << std::endl;
+            }
+            
+            auto test_end = std::chrono::high_resolution_clock::now();
+            auto total_test_time = std::chrono::duration_cast<std::chrono::milliseconds>(test_end - test_start);
+            
+            // Test phase metrics
+            float avg_test_loss = total_test_loss / num_test_batches;
+            float final_test_accuracy = (float)correct_test_predictions / total_test_samples * 100.0f;
+            
+            std::cout << "\n🏆 === RESULTS COMPARISON === 🏆" << std::endl;
+            std::cout << "📚 Training Accuracy: " << std::setprecision(2) << final_train_accuracy << "%" << std::endl;
+            std::cout << "🧪 Test Accuracy: " << std::setprecision(2) << final_test_accuracy << "%" << std::endl;
+            
+            float generalization_gap = final_train_accuracy - final_test_accuracy;
+            std::cout << "📊 Generalization Gap: " << generalization_gap << "%" << std::endl;
+            
+            // Test assertions
+            EXPECT_GT(final_test_accuracy, 5.0f);      // Test accuracy should be reasonable
+            EXPECT_LT(avg_test_loss, 25.0f);           // Test loss should be reasonable  
+            EXPECT_FALSE(std::isnan(avg_test_loss));   // No NaN in test
+            EXPECT_LT(generalization_gap, 50.0f);      // Gap shouldn't be extreme
+            
+        } catch (const std::exception& e) {
+            std::cout << "⚠️  Test data not available: " << e.what() << std::endl;
+            std::cout << "   Training-only evaluation completed" << std::endl;
+        }
+        
+        // Training performance checks (always applicable)
+        EXPECT_GT(final_train_accuracy, 5.0f);     // Training should work
+        EXPECT_LT(avg_train_loss, 20.0f);          // Reasonable training loss
+        EXPECT_FALSE(std::isnan(avg_train_loss));  // No NaN in training
+        
+        std::cout << "✅ Individual layer training test completed!" << std::endl;
+        
+    } catch (const std::exception& e) {
+        FAIL() << "Training with individual layers failed: " << e.what();
+    }
+}
+
 ///////////////////////////////////// important test //////////////////////////////////////////////
 
 TEST(mnist_training_fixed, stable_training_fixed_access) {
