@@ -311,8 +311,4 @@ MIT License © 2025 Burak Kurt
 
 **Proudly built with C++17**
 
-[📖 Documentation](https://github.com/your-username/dll-framework) • [💻 Examples](https://github.com/your-username/dll-framework/examples) • [🐛 Issues](https://github.com/your-username/dll-framework/issues) • [💬 Discussions](https://github.com/your-username/dll-framework/discussions)
-
-📧 burak.kurt@gtu.edu.tr • [LinkedIn](https://linkedin.com/in/your-profile)
-
 </div>
