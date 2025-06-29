@@ -275,17 +275,13 @@ Contribution Guidelines
 
 This project is a Bachelor's Thesis at Gebze Technical University, advised by Prof. Dr. İbrahim SOĞUKPINAR.
 
-```bibtex
-@mastersthesis{kurt2025dll,
-  title={DLL Framework: High-Performance Deep Learning Library in C++17},
-  author={Kurt, Burak},
-  year={2025},
-  school={Gebze Technical University},
-  department={Computer Engineering},
-  advisor={Prof. Dr. İbrahim SOĞUKPINAR},
-  type={Bachelor's Thesis}
-}
-```
+**Author:** Burak Kurt  
+**Title:** DLL Framework: High-Performance Deep Learning Library in C++17  
+**Type:** Bachelor's Thesis  
+**Department:** Computer Engineering  
+**University:** Gebze Technical University  
+**Year:** 2025  
+**Advisor:** Prof. Dr. İbrahim SOĞUKPINAR
 
 ---
 
