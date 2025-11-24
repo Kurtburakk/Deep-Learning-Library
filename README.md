@@ -100,7 +100,7 @@ vcpkg install eigen3 openmp gtest
 
 ### 🔧 Build & Run
 ```bash
-git clone https://github.com/your-username/dll-framework.git
+git clone https://github.com/Kurtburakk/Deep-Learning-Library.git
 cd dll-framework
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
